@@ -1,4 +1,3 @@
-
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import Docx2txtLoader, DirectoryLoader
@@ -16,6 +15,7 @@ if not google_api_key or google_api_key == 'YOUR_GOOGLE_API_KEY':
 # 定义目录
 DOCS_DIR = "documents"
 PERSIST_DIR = "db"
+
 
 def main():
     print("开始处理文档...")
@@ -36,7 +36,6 @@ def main():
         show_progress=True
     )
     documents.extend(loader_docx.load())
-
 
     if not documents:
         print(f"在 '{DOCS_DIR}' 目录中没有找到任何 Word 文件 (.doc 或 .docx)。")
@@ -66,6 +65,7 @@ def main():
     db.persist()
     print("数据处理完成！")
     print(f"向量数据库已成功创建在 '{PERSIST_DIR}' 目录下。")
+
 
 if __name__ == "__main__":
     main()

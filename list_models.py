@@ -5,7 +5,7 @@ import google.generativeai as genai
 # 加载环境变量
 load_dotenv()
 
- # 获取您的 Google API Key
+# 获取您的 Google API Key
 google_api_key = os.getenv("GOOGLE_API_KEY")
 if not google_api_key or google_api_key == 'YOUR_GOOGLE_API_KEY':
     print("错误：请在 .env 文件中设置您的 GOOGLE_API_KEY")

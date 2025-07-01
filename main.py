@@ -6,6 +6,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
+
 # 移除重排器相关导入
 # from langchain.retrievers import ContextualCompressionRetriever
 # from langchain_community.document_compressors import SentenceTransformerRerank
@@ -24,11 +25,14 @@ PERSIST_DIR = "db"
 # 初始化 FastAPI 应用
 app = FastAPI()
 
+
 # 定义请求体
 class QuestionRequest(BaseModel):
     question: str
 
+
 qa_chain = None
+
 
 @app.on_event("startup")
 def startup_event():
@@ -55,7 +59,7 @@ def startup_event():
     # 创建 LLM 实例 (Gemini)
     print("[后端] 正在创建 LLM 实例 (Gemini)...")
     llm = ChatGoogleGenerativeAI(
-        model="models/gemini-1.5-flash", 
+        model="models/gemini-1.5-flash",
         google_api_key=google_api_key,
         temperature=0.1,
         convert_system_message_to_human=True
@@ -64,7 +68,7 @@ def startup_event():
 
     # 创建一个检索器 (不使用重排器)
     print("[后端] 正在创建检索器...")
-    retriever = db.as_retriever(search_kwargs={"k": 3}) # 检索最相关的3个文本块
+    retriever = db.as_retriever(search_kwargs={"k": 3})  # 检索最相关的3个文本块
     print("[后端] 检索器创建完成。")
 
     # 创建提示词模板
@@ -94,12 +98,13 @@ def startup_event():
     print("[后端] QA 链创建完成。")
     print("[后端] 资源加载完成，应用已准备就绪！")
 
+
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
     """接收问题并返回答案"""
     if not qa_chain:
         raise HTTPException(status_code=503, detail="服务尚未完全初始化，请稍后再试。")
-    
+
     print(f"[后端] 收到问题: {request.question}")
     try:
         # --- 添加调试信息 ---
@@ -109,8 +114,9 @@ def ask_question(request: QuestionRequest):
         retrieved_docs = qa_chain.retriever.get_relevant_documents(request.question)
         print(f"[后端] 检索到 {len(retrieved_docs)} 篇相关文档。")
         for i, doc in enumerate(retrieved_docs):
-            print(f"[后端]   文档 {i+1} (来源: {doc.metadata.get('source', '未知')}, 页码: {doc.metadata.get('page', '未知')}):\n[后端]     内容预览: {doc.page_content[:200]}...") # 打印前200字符
-        
+            print(
+                f"[后端]   文档 {i + 1} (来源: {doc.metadata.get('source', '未知')}, 页码: {doc.metadata.get('page', '未知')}):\n[后端]     内容预览: {doc.page_content[:200]}...")  # 打印前200字符
+
         # 模拟提示词构建，实际由 qa_chain.invoke 内部处理
         # 这里只是为了打印，实际提示词构建逻辑在 qa_chain 内部
         # prompt_template = QA_CHAIN_PROMPT.format(context="...", question=request.question)
@@ -121,7 +127,7 @@ def ask_question(request: QuestionRequest):
         result = qa_chain.invoke({"query": request.question})
         print("[后端] qa_chain.invoke 调用成功。")
         print(f"[后端] 生成答案: {result['result']}")
-        
+
         source_documents = []
         for doc in result.get('source_documents', []):
             source_documents.append({
@@ -136,8 +142,9 @@ def ask_question(request: QuestionRequest):
     except Exception as e:
         print(f"[后端] 处理请求时发生错误: {e}")
         import traceback
-        traceback.print_exc() # 打印完整的堆栈信息
+        traceback.print_exc()  # 打印完整的堆栈信息
         raise HTTPException(status_code=500, detail=f"后端处理错误: {e}")
+
 
 @app.get("/")
 def read_root():
